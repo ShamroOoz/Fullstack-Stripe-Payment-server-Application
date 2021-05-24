@@ -4,21 +4,11 @@ import Stripe from "stripe";
 /**
  * Creates a Stripe Checkout session with line items
  */
-
 export async function createStripeCheckoutSession(
   line_items: Stripe.Checkout.SessionCreateParams.LineItem[]
 ) {
   const url = process.env.WEBAPP_URL;
 
-  // Example Item
-  // {
-  //   name: 'T-shirt',
-  //   description: 'Comfortable cotton t-shirt',
-  //   images: ['https://example.com/t-shirt.png'],
-  //   amount: 500,
-  //   currency: 'usd',
-  //   quantity: 1,
-  //
   const session = await stripe.checkout.sessions.create({
     payment_method_types: ["card"],
     line_items,
