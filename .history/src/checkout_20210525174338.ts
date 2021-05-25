@@ -8,8 +8,8 @@ import Stripe from "stripe";
 export async function createStripeCheckoutSession(
   line_items: Stripe.Checkout.SessionCreateParams.LineItem[]
 ) {
-  const url = process.env.WEBAPP_URL;
-  //const url = "http://localhost:3000";
+  // const url = process.env.WEBAPP_URL;
+  const url = "http://localhost:300";
 
   // Example Item
   // {

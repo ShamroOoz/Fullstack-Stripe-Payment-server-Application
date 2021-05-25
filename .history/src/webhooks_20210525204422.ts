@@ -7,10 +7,7 @@ import { Request, Response } from "express";
 /**
  * Business logic for specific webhook event types
  */
-const webhookHandlers = async (
-  event: Stripe.Event,
-  data: any
-): Promise<any> => {
+const webhookHandlers = async (event: Stripe.Event): Promise<boolean> => {
   switch (event.type) {
     case "payment_intent.succeeded":
       console.log("Add your business logic here");
@@ -24,44 +21,16 @@ const webhookHandlers = async (
       console.log("Add your business logic here");
       return await Promise.resolve(true);
 
-    case "invoice.payment_succeeded":
-      console.log("Add your business logic here");
-      return await Promise.resolve(true);
-
     case "customer.subscription.deleted":
+      const data: Stripe.Subscription = event.data.object;
       const customer = (await stripe.customers.retrieve(
         data.customer as string
       )) as Stripe.Customer;
       const userId = customer.metadata.firebaseUID;
       const userRef = db.collection("users").doc(userId);
-      return await userRef.update({
+      await userRef.update({
         activePlans: firestore.FieldValue.arrayRemove(data.id),
       });
-
-    case "customer.subscription.created":
-      (async function () {
-        const customer = (await stripe.customers.retrieve(
-          data.customer as string
-        )) as Stripe.Customer;
-        const userId = customer.metadata.firebaseUID;
-        const userRef = db.collection("users").doc(userId);
-
-        return await userRef.update({
-          activePlans: firestore.FieldValue.arrayUnion(data.plan.id),
-        });
-      })();
-
-    case "invoice.payment_failed":
-      (async function () {
-        const customer = (await stripe.customers.retrieve(
-          data.customer as string
-        )) as Stripe.Customer;
-        const userSnapshot = await db
-          .collection("users")
-          .doc(customer.metadata.firebaseUID)
-          .get();
-        return await userSnapshot.ref.update({ status: "PAST_DUE" });
-      })();
 
     default:
       console.log(`Unhandled event type ${event.type}.`);
@@ -80,7 +49,7 @@ export const handleStripeWebhook = async (req: Request, res: Response) => {
   );
 
   try {
-    await webhookHandlers(event, event.data.object);
+    await webhookHandlers(event);
     res.send({ received: true });
   } catch (err) {
     console.error(err);

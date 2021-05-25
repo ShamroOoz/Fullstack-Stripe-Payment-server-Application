@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { db } from "./firebase";
 import { firestore } from "firebase-admin";
 import { Request, Response } from "express";
+import { async } from "./customers";
 
 /**
  * Business logic for specific webhook event types
@@ -21,10 +22,6 @@ const webhookHandlers = async (
       return await Promise.resolve(true);
 
     case "checkout.session.completed":
-      console.log("Add your business logic here");
-      return await Promise.resolve(true);
-
-    case "invoice.payment_succeeded":
       console.log("Add your business logic here");
       return await Promise.resolve(true);
 
@@ -49,18 +46,6 @@ const webhookHandlers = async (
         return await userRef.update({
           activePlans: firestore.FieldValue.arrayUnion(data.plan.id),
         });
-      })();
-
-    case "invoice.payment_failed":
-      (async function () {
-        const customer = (await stripe.customers.retrieve(
-          data.customer as string
-        )) as Stripe.Customer;
-        const userSnapshot = await db
-          .collection("users")
-          .doc(customer.metadata.firebaseUID)
-          .get();
-        return await userSnapshot.ref.update({ status: "PAST_DUE" });
       })();
 
     default:

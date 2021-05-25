@@ -36,12 +36,14 @@ async function decodeJWT(req: Request, res: Response, next: NextFunction) {
     const idToken = req.headers.authorization.split("Bearer ")[1];
     try {
       const decodedToken = await auth.verifyIdToken(idToken);
+      console.log(decodedToken);
       req["currentUser"] = decodedToken;
     } catch (err) {
       console.log(err);
     }
   }
-  next();
+
+  // next();
 }
 
 /**
@@ -54,6 +56,7 @@ function validateUser(req: Request) {
       "You must be logged in to make this request. i.e Authroization: Bearer <token>"
     );
   }
+
   return user;
 }
 

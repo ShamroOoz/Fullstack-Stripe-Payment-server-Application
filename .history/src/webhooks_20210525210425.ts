@@ -24,10 +24,6 @@ const webhookHandlers = async (
       console.log("Add your business logic here");
       return await Promise.resolve(true);
 
-    case "invoice.payment_succeeded":
-      console.log("Add your business logic here");
-      return await Promise.resolve(true);
-
     case "customer.subscription.deleted":
       const customer = (await stripe.customers.retrieve(
         data.customer as string
@@ -37,32 +33,6 @@ const webhookHandlers = async (
       return await userRef.update({
         activePlans: firestore.FieldValue.arrayRemove(data.id),
       });
-
-    case "customer.subscription.created":
-      (async function () {
-        const customer = (await stripe.customers.retrieve(
-          data.customer as string
-        )) as Stripe.Customer;
-        const userId = customer.metadata.firebaseUID;
-        const userRef = db.collection("users").doc(userId);
-
-        return await userRef.update({
-          activePlans: firestore.FieldValue.arrayUnion(data.plan.id),
-        });
-      })();
-
-    case "invoice.payment_failed":
-      (async function () {
-        const customer = (await stripe.customers.retrieve(
-          data.customer as string
-        )) as Stripe.Customer;
-        const userSnapshot = await db
-          .collection("users")
-          .doc(customer.metadata.firebaseUID)
-          .get();
-        return await userSnapshot.ref.update({ status: "PAST_DUE" });
-      })();
-
     default:
       console.log(`Unhandled event type ${event.type}.`);
       return await Promise.resolve(true);

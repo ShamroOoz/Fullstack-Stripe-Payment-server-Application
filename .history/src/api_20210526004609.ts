@@ -54,6 +54,7 @@ function validateUser(req: Request) {
       "You must be logged in to make this request. i.e Authroization: Bearer <token>"
     );
   }
+
   return user;
 }
 

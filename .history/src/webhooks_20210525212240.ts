@@ -3,6 +3,7 @@ import Stripe from "stripe";
 import { db } from "./firebase";
 import { firestore } from "firebase-admin";
 import { Request, Response } from "express";
+import { async } from "./customers";
 
 /**
  * Business logic for specific webhook event types

@@ -32,16 +32,18 @@ app.use(decodeJWT);
  * Makes the currentUser (firebase) data available on the body.
  */
 async function decodeJWT(req: Request, res: Response, next: NextFunction) {
-  if (req.headers?.authorization?.startsWith("Bearer ")) {
-    const idToken = req.headers.authorization.split("Bearer ")[1];
-    try {
-      const decodedToken = await auth.verifyIdToken(idToken);
-      req["currentUser"] = decodedToken;
-    } catch (err) {
-      console.log(err);
-    }
-  }
-  next();
+  console.log(req.header.authorization);
+  // if (req.headers?.authorization?.startsWith("Bearer ")) {
+  //   const idToken = req.headers.authorization.split("Bearer ")[1];
+  //   try {
+  //     const decodedToken = await auth.verifyIdToken(idToken);
+  //     req["currentUser"] = decodedToken;
+  //   } catch (err) {
+  //     console.log(err);
+  //   }
+  // }
+
+  // next();
 }
 
 /**
@@ -54,6 +56,7 @@ function validateUser(req: Request) {
       "You must be logged in to make this request. i.e Authroization: Bearer <token>"
     );
   }
+
   return user;
 }
 
