@@ -1,15 +1,9 @@
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
-import { auth } from "./firebase";
 import { createStripeCheckoutSession } from "./checkout";
 import { createPaymentIntent } from "./payments";
+import { auth } from "./firebase";
 import { createSetupIntent, listPaymentMethods } from "./customers";
-import {
-  createSubscription,
-  cancelSubscription,
-  listSubscriptions,
-} from "./billing";
-import { handleStripeWebhook } from "./webhooks";
 
 //app
 export const app = express();
@@ -34,6 +28,7 @@ app.use(decodeJWT);
 async function decodeJWT(req: Request, res: Response, next: NextFunction) {
   if (req.headers?.authorization?.startsWith("Bearer ")) {
     const idToken = req.headers.authorization.split("Bearer ")[1];
+
     try {
       const decodedToken = await auth.verifyIdToken(idToken);
       req["currentUser"] = decodedToken;
@@ -108,57 +103,11 @@ app.get(
   "/wallet",
   runAsync(async (req: Request, res: Response) => {
     const user = validateUser(req);
+
     const wallet = await listPaymentMethods(user.uid);
     res.send(wallet.data);
   })
 );
-
-/**
- * Billing and Recurring Subscriptions
- */
-
-// Create a and charge new Subscription
-app.post(
-  "/subscriptions/",
-  runAsync(async (req: Request, res: Response) => {
-    const user = validateUser(req);
-    const { plan, payment_method } = req.body;
-    const subscription = await createSubscription(
-      user.uid,
-      plan,
-      payment_method
-    );
-    res.send(subscription);
-  })
-);
-
-// Get all subscriptions for a customer
-app.get(
-  "/subscriptions/",
-  runAsync(async (req: Request, res: Response) => {
-    const user = validateUser(req);
-
-    const subscriptions = await listSubscriptions(user.uid);
-
-    res.send(subscriptions.data);
-  })
-);
-
-// Unsubscribe or cancel a subscription
-app.patch(
-  "/subscriptions/:id",
-  runAsync(async (req: Request, res: Response) => {
-    const user = validateUser(req);
-    res.send(await cancelSubscription(user.uid, req.params.id));
-  })
-);
-
-/**
- * Webhooks
- */
-
-// Handle webhooks
-app.post("/hooks", runAsync(handleStripeWebhook));
 
 //     /**
 //  * testroute

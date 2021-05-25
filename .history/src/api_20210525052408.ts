@@ -32,8 +32,9 @@ app.use(decodeJWT);
  * Makes the currentUser (firebase) data available on the body.
  */
 async function decodeJWT(req: Request, res: Response, next: NextFunction) {
-  if (req.headers?.authorization?.startsWith("Bearer ")) {
+  if (req.headers?.authorization?.startsWith("Bearer")) {
     const idToken = req.headers.authorization.split("Bearer ")[1];
+
     try {
       const decodedToken = await auth.verifyIdToken(idToken);
       req["currentUser"] = decodedToken;
@@ -108,6 +109,7 @@ app.get(
   "/wallet",
   runAsync(async (req: Request, res: Response) => {
     const user = validateUser(req);
+
     const wallet = await listPaymentMethods(user.uid);
     res.send(wallet.data);
   })

@@ -108,6 +108,7 @@ app.get(
   "/wallet",
   runAsync(async (req: Request, res: Response) => {
     const user = validateUser(req);
+
     const wallet = await listPaymentMethods(user.uid);
     res.send(wallet.data);
   })

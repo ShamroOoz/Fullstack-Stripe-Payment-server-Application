@@ -1,15 +1,9 @@
 import express, { Request, Response, NextFunction } from "express";
 import cors from "cors";
-import { auth } from "./firebase";
 import { createStripeCheckoutSession } from "./checkout";
 import { createPaymentIntent } from "./payments";
+import { auth } from "./firebase";
 import { createSetupIntent, listPaymentMethods } from "./customers";
-import {
-  createSubscription,
-  cancelSubscription,
-  listSubscriptions,
-} from "./billing";
-import { handleStripeWebhook } from "./webhooks";
 
 //app
 export const app = express();
@@ -34,6 +28,7 @@ app.use(decodeJWT);
 async function decodeJWT(req: Request, res: Response, next: NextFunction) {
   if (req.headers?.authorization?.startsWith("Bearer ")) {
     const idToken = req.headers.authorization.split("Bearer ")[1];
+
     try {
       const decodedToken = await auth.verifyIdToken(idToken);
       req["currentUser"] = decodedToken;
@@ -108,6 +103,7 @@ app.get(
   "/wallet",
   runAsync(async (req: Request, res: Response) => {
     const user = validateUser(req);
+
     const wallet = await listPaymentMethods(user.uid);
     res.send(wallet.data);
   })
@@ -152,13 +148,6 @@ app.patch(
     res.send(await cancelSubscription(user.uid, req.params.id));
   })
 );
-
-/**
- * Webhooks
- */
-
-// Handle webhooks
-app.post("/hooks", runAsync(handleStripeWebhook));
 
 //     /**
 //  * testroute
